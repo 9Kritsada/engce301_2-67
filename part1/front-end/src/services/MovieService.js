@@ -3,7 +3,7 @@ export async function searchMovie(search_data) {
     console.log("search_data: " + search_data);
 
     const response = await fetch(
-      "http://localhost:3001/api/movie/search?search_text=" + search_data
+      "http://192.168.17.133:3001/api/movie/search?search_text=" + search_data
     );
 
     return await response.json(); //***
@@ -17,7 +17,7 @@ export async function searchMovie(search_data) {
 export async function getAllMovies() {
   try {
     //const response = await fetch('/api/users');
-    const response = await fetch("http://localhost:3001/api/movie/all");
+    const response = await fetch("http://192.168.17.133:3001/api/movie/all");
     //const response = await fetch('/api/movie/all');
     return await response.json();
   } catch (error) {
@@ -27,7 +27,7 @@ export async function getAllMovies() {
 
 //---- ยังไม่เสร็จ ----
 export async function createMovie(data) {
-  const response = await fetch(`http://localhost:3001/api/movie/insert`, {
+  const response = await fetch(`http://192.168.17.133:3001/api/movie/insert`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

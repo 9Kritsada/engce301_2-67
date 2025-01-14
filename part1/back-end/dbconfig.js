@@ -1,7 +1,7 @@
 var dbconfig = {
   development: {
     //connectionLimit : 10,
-    host: "172.17.192.1",
+    host: "localhost",
     port: "3306",
     user: "root",
     password: "",
@@ -12,7 +12,7 @@ var dbconfig = {
     host: "localhost",
     port: "3306",
     user: "root",
-    password: "",
+    password: "1234",
     database: "moviedb",
   },
 };
