@@ -174,7 +174,7 @@ const init = async () => {
 
       try {
         param.agentcode;
-        if (param.agentcode == null)
+        if (!param.agentcode)
           return h.response({ error: "Please provide agentcode." }).code(400);
         else {
           const responsedata =
@@ -228,7 +228,7 @@ const init = async () => {
     handler: async (request, h) => {
       const { AgentCode, AgentName, IsLogin, AgentStatus } = request.payload;
       try {
-        if (AgentCode == null || AgentCode.trim() === "")
+        if (!AgentCode)
           return h.response({ error: "Please provide agentcode." }).code(400);
         else {
           const responsedata =
@@ -244,10 +244,18 @@ const init = async () => {
               .code(500);
 
           if (responsedata.statusCode == 404) {
-            return OnlineAgent.OnlineAgentRepo.createAgent(AgentCode, AgentName, IsLogin, AgentStatus
+            return OnlineAgent.OnlineAgentRepo.createAgent(
+              AgentCode,
+              AgentName,
+              IsLogin,
+              AgentStatus
             );
           } else if (responsedata.statusCode == 200) {
-            return OnlineAgent.OnlineAgentRepo.updateAgent(AgentCode, AgentName, IsLogin, AgentStatus
+            return OnlineAgent.OnlineAgentRepo.updateAgent(
+              AgentCode,
+              AgentName,
+              IsLogin,
+              AgentStatus
             );
           } else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
