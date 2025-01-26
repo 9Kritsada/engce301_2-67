@@ -184,14 +184,18 @@ const init = async () => {
 
           if (responsedata.statusCode == 500)
             return h
-              .response({ error: "Something went wrong. Please try again later." })
+              .response({
+                error: "Something went wrong. Please try again later.",
+              })
               .code(500);
           else if (responsedata.statusCode == 200) return responsedata;
           else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
           else
             return h
-              .response({ error: "Something went wrong. Please try again later." })
+              .response({
+                error: "Something went wrong. Please try again later.",
+              })
               .code(500);
         }
       } catch (err) {
@@ -221,10 +225,10 @@ const init = async () => {
         credentials: true,
       },
     },
-    handler: async (request, reply) => {
+    handler: async (request, h) => {
       const { AgentCode, AgentName, IsLogin, AgentStatus } = request.payload;
       try {
-        if (AgentCode == null)
+        if (AgentCode == null || AgentCode.trim() === "")
           return h.response({ error: "Please provide agentcode." }).code(400);
         else {
           const responsedata =
@@ -234,28 +238,24 @@ const init = async () => {
 
           if (responsedata.statusCode == 500)
             return h
-              .response({ error: "Something went wrong. Please try again later." })
+              .response({
+                error: "Something went wrong. Please try again later.",
+              })
               .code(500);
 
           if (responsedata.statusCode == 404) {
-            return OnlineAgent.OnlineAgentRepo.createAgent(
-              AgentCode,
-              AgentName,
-              IsLogin,
-              AgentStatus
+            return OnlineAgent.OnlineAgentRepo.createAgent(AgentCode, AgentName, IsLogin, AgentStatus
             );
           } else if (responsedata.statusCode == 200) {
-            return OnlineAgent.OnlineAgentRepo.updateAgent(
-              AgentCode,
-              AgentName,
-              IsLogin,
-              AgentStatus
+            return OnlineAgent.OnlineAgentRepo.updateAgent(AgentCode, AgentName, IsLogin, AgentStatus
             );
           } else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
           else
             return h
-              .response({ error: "Something went wrong. Please try again later." })
+              .response({
+                error: "Something went wrong. Please try again later.",
+              })
               .code(500);
         }
       } catch (err) {
