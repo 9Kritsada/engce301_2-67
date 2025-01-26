@@ -1,6 +1,7 @@
 const hapi = require("@hapi/hapi");
 let express = require("express");
 const AuthBearer = require("hapi-auth-bearer-token");
+const { unauthorized, badImplementation } = require("@hapi/boom");
 let fs = require("fs");
 let cors = require("cors");
 
@@ -76,8 +77,26 @@ const init = async () => {
 
   await server.register(AuthBearer);
 
+  server.ext("onPreResponse", (request, h) => {
+    const response = request.response;
+
+    // Check if the response is an error
+    if (response.isBoom) {
+      console.error(response);
+      const { output } = response;
+      return h
+        .response({
+          error: output.payload.message,
+        })
+        .code(output.statusCode);
+    }
+
+    return h.continue;
+  });
+
   server.auth.strategy("simple", "bearer-access-token", {
     allowQueryToken: true, // optional, false by default
+    unauthorized: () => unauthorized("Invalid Auth key."),
     validate: async (request, token, h) => {
       // here is where you validate your token
       // comparing with token from your database for example
@@ -156,7 +175,7 @@ const init = async () => {
       try {
         param.agentcode;
         if (param.agentcode == null)
-          return h.response("Please provide agentcode.").code(400);
+          return h.response({ error: "Please provide agentcode." }).code(400);
         else {
           const responsedata =
             await OnlineAgent.OnlineAgentRepo.getOnlineAgentByAgentCode(
@@ -165,14 +184,14 @@ const init = async () => {
 
           if (responsedata.statusCode == 500)
             return h
-              .response("Something went wrong. Please try again later.")
+              .response({ error: "Something went wrong. Please try again later." })
               .code(500);
           else if (responsedata.statusCode == 200) return responsedata;
           else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
           else
             return h
-              .response("Something went wrong. Please try again later.")
+              .response({ error: "Something went wrong. Please try again later." })
               .code(500);
         }
       } catch (err) {
@@ -206,7 +225,7 @@ const init = async () => {
       const { AgentCode, AgentName, IsLogin, AgentStatus } = request.payload;
       try {
         if (AgentCode == null)
-          return h.response("Please provide agentcode.").code(400);
+          return h.response({ error: "Please provide agentcode." }).code(400);
         else {
           const responsedata =
             await OnlineAgent.OnlineAgentRepo.getOnlineAgentByAgentCode(
@@ -215,18 +234,28 @@ const init = async () => {
 
           if (responsedata.statusCode == 500)
             return h
-              .response("Something went wrong. Please try again later.")
+              .response({ error: "Something went wrong. Please try again later." })
               .code(500);
 
           if (responsedata.statusCode == 404) {
-            return OnlineAgent.OnlineAgentRepo.createAgent(AgentCode, AgentName, IsLogin, AgentStatus);
+            return OnlineAgent.OnlineAgentRepo.createAgent(
+              AgentCode,
+              AgentName,
+              IsLogin,
+              AgentStatus
+            );
           } else if (responsedata.statusCode == 200) {
-            return OnlineAgent.OnlineAgentRepo.updateAgent(AgentCode, AgentName, IsLogin, AgentStatus);
+            return OnlineAgent.OnlineAgentRepo.updateAgent(
+              AgentCode,
+              AgentName,
+              IsLogin,
+              AgentStatus
+            );
           } else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
           else
             return h
-              .response("Something went wrong. Please try again later.")
+              .response({ error: "Something went wrong. Please try again later." })
               .code(500);
         }
       } catch (err) {
