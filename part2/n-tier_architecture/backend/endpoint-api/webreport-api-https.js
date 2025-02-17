@@ -16,13 +16,32 @@ const apiport = 8443;
 
 var url = require("url");
 
+//init Express
+var app = express();
+//init Express Router
+var router = express.Router();
+//var port = process.env.PORT || 87;
+
+//REST route for GET /status
+router.get("/status", function (req, res) {
+  res.json({
+    status: "App is running!",
+  });
+});
+
+//connect path to router
+app.use("/", router);
+
+//----------------------------------------------
+
 //---------------- Websocket Part1 Start -----------------------
 
 var webSocketServer = new (require("ws").Server)({
-    port: process.env.PORT || 3071,
-  }),
-  clientWebSockets = {}; // userID: webSocket
-CLIENTS = [];
+  port: process.env.PORT || 3071,
+});
+
+var clientWebSockets = {}; // userID: webSocket
+var CLIENTS = [];
 
 webSocketServer.on("connection", (ws, req) => {
   var q = url.parse(req.url, true);
@@ -31,8 +50,7 @@ webSocketServer.on("connection", (ws, req) => {
   console.log(q.pathname);
   console.log(q.search);
 
-  var qdata = q.query; //returns an object: { year: 2017, month: 'february' }
-
+  var qdata = q.query; //returns an object:
   console.log("------- webSocketServer ------");
   console.log("AgentCode: " + qdata.agentcode);
 
@@ -72,24 +90,6 @@ webSocketServer.on("connection", (ws, req) => {
 });
 
 //---------------- Websocket Part1 End -----------------------
-
-//init Express
-var app = express();
-//init Express Router
-var router = express.Router();
-//var port = process.env.PORT || 87;
-
-//REST route for GET /status
-router.get("/status", function (req, res) {
-  res.json({
-    status: "App is running!",
-  });
-});
-
-//connect path to router
-app.use("/", router);
-
-//----------------------------------------------
 
 const init = async () => {
   //process.setMaxListeners(0);
@@ -318,6 +318,31 @@ const init = async () => {
               AgentStatus
             );
 
+          //---------------- Websocket Part2 Start -----------------------
+          console.log("AgentCode: " + AgentCode);
+
+          if (!responsedata.error) {
+            if (clientWebSockets[AgentCode]) {
+              console.log("Sennding MessageType");
+              clientWebSockets[AgentCode].send(
+                JSON.stringify({
+                  MessageType: "1",
+                  AgentCode: AgentCode,
+                  AgentName: AgentName,
+                  IsLogin: IsLogin,
+                  AgentStatus: AgentStatus,
+                  DateTime: d.toLocaleString("en-US"),
+                })
+              );
+
+              return {
+                error: false,
+                message: "Agent status has been set.",
+              };
+            }
+          }
+          //---------------- Websocket Part2 End -----------------------
+
           if (responsedata.statusCode == 500)
             return h
               .response({
@@ -326,35 +351,8 @@ const init = async () => {
                 errMessage: "An internal server error occurred.",
               })
               .code(500);
-          else if (responsedata.statusCode == 200) {
-            //---------------- Websocket Part2 Start -----------------------
-            console.log("AgentCode: " + AgentCode);
-
-            if (!responsedata.error) {
-              if (clientWebSockets[AgentCode]) {
-                console.log("Sennding MessageType");
-
-                clientWebSockets[AgentCode].send(
-                  JSON.stringify({
-                    MessageType: "1",
-                    AgentCode: AgentCode,
-                    AgentName: AgentName,
-                    IsLogin: IsLogin,
-                    AgentStatus: AgentStatus,
-                    DateTime: d.toLocaleString("en-US"),
-                  })
-                );
-
-                return {
-                  error: false,
-                  message: "Agent status has been set.",
-                };
-              }
-            }
-            //---------------- Websocket Part2 End -----------------------
-
-            return responsedata;
-          } else if (responsedata.statusCode == 404)
+          else if (responsedata.statusCode == 200) return responsedata;
+          else if (responsedata.statusCode == 404)
             return h.response(responsedata).code(404);
           else
             return h
@@ -415,7 +413,7 @@ const init = async () => {
             })
             .code(400);
         else {
-          //---------------- Websocket -----------------------------
+          //---------------- Websocket Part3 Start -----------------------
 
           if (clientWebSockets[ToAgentCode]) {
             clientWebSockets[ToAgentCode].send(
@@ -441,7 +439,7 @@ const init = async () => {
               })
               .code(404);
 
-          //---------------- Websocket -----------------------------
+          //---------------- Websocket Part3 End -----------------------
         }
       } catch (err) {
         console.dir(err);
