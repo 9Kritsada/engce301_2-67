@@ -37,33 +37,6 @@ class WindowManager {
         //--------------------------------
     }
 
-
-    //Creates a Tray and a Windows
-    createUI() {
-        if (process.platform == "darwin")
-            app.dock.hide();
-        this.createTray();
-        this.createMainWindow();
-        this.createIPC();
-    }
-
-    closeApp() {
-        if (app.showExitPrompt) {
-            e.preventDefault() // Prevents the window from closing 
-            dialog.showMessageBox({
-                type: 'question',
-                buttons: ['Yes', 'No'],
-                title: 'Confirm',
-                message: 'Unsaved data will be lost. Are you sure you want to quit?'
-            }, function (response) {
-                if (response === 0) { // Runs the following if 'Yes' is clicked
-                    app.showExitPrompt = false
-                    mainWindow.close()
-                }
-            })
-        }
-    }
-
     createTray() {
         this.tray = new Tray(this.icon);
         this.tray.getTitle('Agent Notification')
@@ -108,7 +81,8 @@ class WindowManager {
                 enableRemoteModule: true,
                 plugins: true,
                 devTools: true,
-                contextIsolation: false
+                contextIsolation: false,  // Be careful with this in production
+                webSecurity: true
             },
             skipTaskbar: false
         })
@@ -139,6 +113,33 @@ class WindowManager {
         });
 
     }
+
+    //Creates a Tray and a Windows
+    createUI() {
+        if (process.platform == "darwin")
+            app.dock.hide();
+        this.createTray();
+        this.createMainWindow();
+        this.createIPC();
+    }
+
+    closeApp() {
+        if (app.showExitPrompt) {
+            e.preventDefault() // Prevents the window from closing 
+            dialog.showMessageBox({
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Confirm',
+                message: 'Unsaved data will be lost. Are you sure you want to quit?'
+            }, function (response) {
+                if (response === 0) { // Runs the following if 'Yes' is clicked
+                    app.showExitPrompt = false
+                    mainWindow.close()
+                }
+            })
+        }
+    }
+
 
     hideWindow() {
         this.win.hide()

@@ -1,9 +1,8 @@
-
 const { app } = require('electron')
 const WindowManager = require('./Scripts/WindowManager.js');
 
 //Main Object responsible for managing the electron windows is created
- windowManager = new WindowManager();
+windowManager = new WindowManager();
 
 //Called when Electron is ready
 //This creates the browser windows and tray in the menu bar
@@ -16,19 +15,17 @@ app.on('window-all-closed', () => {
   }
 })
 
-//--- When use self-signing certificate must be uncomment this line below. ---
-app.commandLine.appendSwitch("ignore-certificate-errors");
+app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
-//-----------------------
+app.whenReady().then(() => {
 
-// In main process.
-const { ipcMain } = require('electron')
-ipcMain.on('asynchronous-message', (event, arg) => {
-  console.log(arg) // prints "ping"
-  event.reply('asynchronous-reply', 'pong')
-})
+  // Disable certificate verification (DEVELOPMENT ONLY)
+  app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    // Only if the URL is your WSL development API
+    if (url.includes('172.27.87.8')) {
+      event.preventDefault();
+      callback(true);
+    }
+  });
 
-ipcMain.on('synchronous-message', (event, arg) => {
-  console.log(arg) // prints "ping"
-  event.returnValue = 'pong'
-})
+});

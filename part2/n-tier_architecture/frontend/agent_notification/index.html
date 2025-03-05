@@ -31,6 +31,9 @@
 
       var AgentCode;
       var agentStatusID;
+      var AgentName;
+      var IsLogin;
+
       var callTotal = 0;
       var agentData;
 
@@ -41,6 +44,8 @@
       //--Dev Server------------------------------
       var APIServer = "https://172.17.207.171:8443/api/v1";
       var WebSecketServer = "ws://172.17.207.171:3071";
+      //var APIServer = 'https://wsl.engce301.com:8443/api/v1';
+      //var WebSecketServer = 'ws://wsl.engce301.com:3071';
 
       //--Staging Server------------------------------
       //var APIServer = "https://lab-api.se-rmutl.net/engse207/api/v1";
@@ -59,6 +64,8 @@
       let ws;
 
       let checked;
+
+      //--- Notification see at: https://www.youtube.com/watch?v=MrPwuJX4VTg
 
       function notify() {
         const notification = {
@@ -104,16 +111,16 @@
 
       function messageNotify(ReceiveMessage) {
         /*
-                      const notification = {
-                          title: 'From: '+ReceiveMessage.FromAgentCode,
-                          //subtitle: 'Subtitle of the Notification',
-                          //body: '** '+ statusLabel+ ' **',
-                          body: 'Message: '+ReceiveMessage.Message +'\n'+'['+ReceiveMessage.DateTime+']',
-                          silent: false,
-                          requireInteraction: true,
-                          icon: path.join(__dirname, './assets/icon/impatient.png')
-                      }
-                      */
+              const notification = {
+                  title: 'From: '+ReceiveMessage.FromAgentCode,
+                  //subtitle: 'Subtitle of the Notification',
+                  //body: '** '+ statusLabel+ ' **',
+                  body: 'Message: '+ReceiveMessage.Message +'\n'+'['+ReceiveMessage.DateTime+']',
+                  silent: false,
+                  requireInteraction: true,
+                  icon: path.join(__dirname, './assets/icon/impatient.png')
+              }
+              */
         const notification = {
           title:
             ReceiveMessage.DateTime +
@@ -223,6 +230,40 @@
         }
       }
 
+      function changeAgentStatus(currentStatus) {
+        //https://localhost:8443/api/v1/postOnlineAgentStatus
+
+        var formData = new FormData();
+        formData.append("AgentCode", AgentCode);
+        formData.append("AgentName", AgentName);
+        formData.append("IsLogin", "1");
+
+        var selectedText =
+          currentStatus.options[currentStatus.selectedIndex].innerHTML;
+        var selectedValue = currentStatus.value;
+
+        formData.append("AgentStatus", selectedValue);
+
+        // alert("Selected Text: " + selectedText + " Value: " + selectedValue);
+
+        $.ajax({
+          type: "POST",
+          url: APIServer + "/postOnlineAgentStatus",
+          headers: {
+            Authorization:
+              "Bearer 1aaZ!ARgAQGuQzp00D5D000000.mOv2jmhXkfIsjgywpCIh7.HZpc6vED1LCbc90DTaVDJwdNqbTW5r4uZicv8AFfkOE1ialqnR8UN5.wnAgh090h",
+          },
+          data: formData,
+          success: function (result) {
+            console.log("postOnlineAgentStatus: " + JSON.stringify(result));
+          },
+          processData: false,
+          contentType: false,
+          //dataType: "json",
+          //contentType: 'multipart/form-data',
+        });
+      }
+
       function checkInput(status) {
         if ($("#agent").val() == "") {
           //alert("Please enter Agent Code");
@@ -248,6 +289,9 @@
                   response.data.IsLogin == 1 &&
                   response.data.AgentStatus != 9
                 ) {
+                  AgentName = response.data.AgentName;
+                  IsLogin = response.data.IsLogin;
+
                   wsChecks = "true";
                   console.log("new: " + wsChecks);
                   //$("#errMessage").hide();
@@ -317,7 +361,8 @@
               console.log("ERROR: net::ERR_INTERNET_DISCONNECTED");
               //$("#connectTime").empty().append("ERR_INTERNET_DISCONNECTED");
               //$('#connectTime').empty().removeClass().addClass('badge bg-danger').append('ERR_INTERNET_DISCONNECTED');
-              $("#connectTime").empty().append("ERROR: INTERNET DISCONNECTED");
+              //$('#connectTime').empty().append('ERROR: INTERNET DISCONNECTED');
+              $("#connectTime").empty().append("Agent not found.");
             },
           });
 
@@ -755,7 +800,6 @@
                   >
                     Disconnect
                   </button>
-                  <!-- Step7 Start  -->
 
                   <div class="input-group mt-2">
                     <img
@@ -766,7 +810,7 @@
                     />
                     <select
                       id="currentStatus"
-                      onchange="GetSelectedTextValue(this)"
+                      onchange="changeAgentStatus(this)"
                     >
                       <option value="1">Avalible</option>
                       <option value="2">Active</option>
@@ -774,6 +818,19 @@
                       <option value="4">Not Ready</option>
                     </select>
                   </div>
+
+                  <!--
+                            <div class="input-group-sm mb-1">
+                                <input type="text" class="form-control form-control-sm" id="destAgent"
+                                    placeholder="Agent" />
+                                <input type="text" class="form-control form-control-sm" id="agentMsg"
+                                    placeholder="Type message here.." />
+                                <button id="SendMsgBtn" class="btn btn-warning btn-sm btn-block shadow"
+                                    onclick="checkInput('on')">
+                                    Send
+                                </button>
+                            </div>
+-->
 
                   <div class="input-group mt-2">
                     <div class="col-xs-1">
@@ -804,8 +861,6 @@
                       </button>
                     </div>
                   </div>
-
-                  <!-- Step7 End  -->
                 </div>
               </div>
             </tr>
