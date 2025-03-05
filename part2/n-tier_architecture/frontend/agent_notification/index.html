@@ -262,6 +262,19 @@
           //dataType: "json",
           //contentType: 'multipart/form-data',
         });
+
+        $.ajax({
+          type: "POST",
+          url: `https://172.17.207.171:4000/api/functions/postOnlineAgentListByTeam?AgentCode=${AgentCode}&AgentName=${AgentName}&Team=2&AgentStatus=${selectedValue}&AgentStatusCode=5&IsLogin=1`,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Parse-Application-Id": "wallboardapi",
+            "X-Parse-Master-Key": "wallboardapi",
+          },
+          success: function (result) {
+            console.log("postOnlineAgentStatus: " + JSON.stringify(result));
+          },
+        });
       }
 
       function checkInput(status) {
